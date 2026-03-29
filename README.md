@@ -69,16 +69,16 @@ Run:
 ------------------------------------------------------------
 📁 PROJECT STRUCTURE
 ------------------------------------------------------------
-
+```
 Glory-POS-Application/
-|
-+-- main.py                 (GUI Application)
-+-- bruebox_client.py       (SOAP API Client)
-+-- dist/                   (EXE build output)
-+-- build/                  (PyInstaller build artifacts)
-+-- Command.txt             (Notes / XML samples)
-+-- README.md               (This file)
-
+│
+├── main.py                 (GUI Application)
+├── bruebox_client.py       (SOAP API Client)
+├── dist/                   (EXE build output)
+├── build/                  (PyInstaller build artifacts)
+├── Command.txt             (Notes / XML samples)
+└── README.md               (This file)
+```
 ------------------------------------------------------------
 🏗️ BUILD EXE (OPTIONAL)
 ------------------------------------------------------------
