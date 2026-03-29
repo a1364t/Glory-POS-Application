@@ -1,6 +1,6 @@
 # Glory POS Application
 
-A custom Point‑of‑Sale (POS) controller application built in **Python** using **PyQt5**, designed to communicate with **Glory BrueBox / CDM 9(Cash Deposit Module)/ ADM (Automatic Deposit Machine)** devices via SOAP.
+A custom Point‑of‑Sale (POS) controller application built in **Python** using **PyQt5**, designed to communicate with **Glory BrueBox / CDM (Cash Deposit Module)/ ADM (Automatic Deposit Machine)** devices via SOAP.
 The application provides a clean UI to manage sessions, deposits, dispensing, status checks, resets, and transaction cancellations — all without freezing the interface.
 
 ------------------------------------------------------------
