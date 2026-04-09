@@ -1,23 +1,46 @@
 # bruebox_client.py
+"""
+Client for communicating with Glory BrueBox cash recycler devices via SOAP over HTTP.
+Handles session management, device control, and transaction operations.
+"""
+
 import requests
 import xml.etree.ElementTree as ET
 
+# SOAP namespace constants for XML envelope and BrueBox schema
 NS_SOAP = "http://schemas.xmlsoap.org/soap/envelope/"
 NS_BRU  = "http://www.glory.co.jp/bruebox.xsd"
 
 
 class BrueBoxClient:
+    """
+    SOAP client for Glory BrueBox cash handling devices.
+    Manages HTTP connections, session state, and XML-based command execution.
+    """
+
     def __init__(self, ip_address="192.168.0.25"):
+        """
+        Initialize the client with device IP address.
+        
+        Args:
+            ip_address (str): IP address of the BrueBox device
+        """
         self.ip_address = ip_address
         self.url = f"http://{ip_address}/axis2/services/BrueBoxService"
-        self.session_id = None
-        self.log_callback = None
-        self.http = requests.Session()
+        self.session_id = None  # Current session ID from device
+        self.log_callback = None  # Callback function for logging messages
+        self.http = requests.Session()  # Persistent HTTP session for connection reuse
 
     # -------------------------------
     # Dynamic IP assignment
     # -------------------------------
     def set_ip(self, ip):
+        """
+        Update the device IP address and reconstruct the service URL.
+        
+        Args:
+            ip (str): New IP address for the device
+        """
         self.ip_address = ip
         self.url = f"http://{ip}/axis2/services/BrueBoxService"
         if self.log_callback:
@@ -27,6 +50,13 @@ class BrueBoxClient:
     # Internal logger
     # -------------------------------
     def _log(self, msg, color="black"):
+        """
+        Internal logging method that calls the configured callback.
+        
+        Args:
+            msg (str): Message to log
+            color (str): Color for the message display
+        """
         if self.log_callback:
             self.log_callback(msg, color)
 
@@ -34,6 +64,18 @@ class BrueBoxClient:
     # POST Helper (FULL LOGGING)
     # -------------------------------
     def _post(self, action, xml, *, timeout=(2.0, 30.0)):
+        """
+        Send SOAP request to the device and handle response.
+        Includes comprehensive logging for debugging.
+        
+        Args:
+            action (str): SOAPAction header value
+            xml (str): SOAP XML request body
+            timeout (tuple): (connect_timeout, read_timeout) in seconds
+            
+        Returns:
+            str: XML response text, or None on error
+        """
 
         # ✅ REQUEST LOGS
         self._log("========== REQUEST ==========", "blue")
@@ -75,6 +117,16 @@ class BrueBoxClient:
     # Extract text inside <tag>
     # -------------------------------
     def _get_text(self, xml, tag):
+        """
+        Parse XML response and extract text content from specified tag.
+        
+        Args:
+            xml (str): XML response string
+            tag (str): Tag name to search for
+            
+        Returns:
+            str: Text content of the tag, or None if not found
+        """
         if not xml:
             return None
         try:
@@ -90,6 +142,17 @@ class BrueBoxClient:
     # Extract n:result="*"
     # -------------------------------
     def _get_result(self, xml, tag):
+        """
+        Parse XML response and extract result code from specified response tag.
+        Includes logging for common error codes.
+        
+        Args:
+            xml (str): XML response string
+            tag (str): Response tag name to search for
+            
+        Returns:
+            str: Result code attribute value, or None if not found
+        """
         if not xml:
             return None
         try:
@@ -118,9 +181,16 @@ class BrueBoxClient:
         return None
 
     # ======================================================================
-    # OPEN
+    # OPEN - Establish connection and get session ID
     # ======================================================================
     def open(self):
+        """
+        Open a new session with the BrueBox device.
+        This must be called before other operations.
+        
+        Returns:
+            tuple: (session_id, response_xml) - Session ID on success, None on failure
+        """
         xml = f"""<?xml version="1.0"?>
 <soapenv:Envelope xmlns:soapenv="{NS_SOAP}" xmlns:bru="{NS_BRU}">
   <soapenv:Header/>
@@ -141,9 +211,16 @@ class BrueBoxClient:
         return self.session_id, resp
 
     # ======================================================================
-    # OCCUPY
+    # OCCUPY - Lock device for exclusive use
     # ======================================================================
     def occupy(self):
+        """
+        Occupy the device for exclusive access by this session.
+        Required before performing transactions.
+        
+        Returns:
+            tuple: (result_code, response_xml) - "0" on success
+        """
         xml = f"""<?xml version="1.0"?>
 <soapenv:Envelope xmlns:soapenv="{NS_SOAP}" xmlns:bru="{NS_BRU}">
   <soapenv:Header/>
@@ -159,9 +236,16 @@ class BrueBoxClient:
         return self._get_result(resp, "OccupyResponse"), resp
 
     # ======================================================================
-    # RELEASE
+    # RELEASE - Unlock device from exclusive use
     # ======================================================================
     def release(self):
+        """
+        Release the device from exclusive access.
+        Allows other sessions to occupy the device.
+        
+        Returns:
+            tuple: (result_code, response_xml) - "0" on success
+        """
         xml = f"""<?xml version="1.0"?>
 <soapenv:Envelope xmlns:soapenv="{NS_SOAP}" xmlns:bru="{NS_BRU}">
   <soapenv:Header/>
@@ -177,9 +261,16 @@ class BrueBoxClient:
         return self._get_result(resp, "ReleaseResponse"), resp
 
     # ======================================================================
-    # CLOSE
+    # CLOSE - End the session
     # ======================================================================
     def close(self):
+        """
+        Close the current session with the device.
+        Cleans up resources and allows new sessions.
+        
+        Returns:
+            tuple: (result_code, response_xml) - "0" on success
+        """
         xml = f"""<?xml version="1.0"?>
 <soapenv:Envelope xmlns:soapenv="{NS_SOAP}" xmlns:bru="{NS_BRU}">
   <soapenv:Header/>
@@ -195,9 +286,19 @@ class BrueBoxClient:
         return self._get_result(resp, "CloseResponse"), resp
 
     # ======================================================================
-    # STATUS (SILENT MODE SUPPORTED)
+    # STATUS - Check device status
     # ======================================================================
     def status(self, seq="StatusTest", silent=False):
+        """
+        Query the current status of the BrueBox device.
+        
+        Args:
+            seq (str): Sequence number for the request
+            silent (bool): If True, suppress logging (used for heartbeat)
+            
+        Returns:
+            tuple: (result_code, response_xml) - "0" indicates device is ready
+        """
 
         xml = f"""<?xml version="1.0"?>
 <soapenv:Envelope xmlns:soapenv="{NS_SOAP}" xmlns:bru="{NS_BRU}">
@@ -213,7 +314,7 @@ class BrueBoxClient:
 </soapenv:Envelope>"""
 
         if silent:
-            # ✅ silent mode bypasses _post() → NO LOGS
+            # Silent mode bypasses logging for background status checks
             try:
                 resp = self.http.post(
                     self.url,
@@ -225,14 +326,25 @@ class BrueBoxClient:
             except:
                 return None, None
 
-        # ✅ Normal logged mode for manual GetStatus button
+        # Normal logged mode for manual status checks
         resp = self._post("GetStatus", xml, timeout=(2.0, 8.0))
         return self._get_result(resp, "StatusResponse"), resp
 
     # ======================================================================
-    # CHANGE REQUEST
+    # CHANGE REQUEST - Deposit or dispense cash
     # ======================================================================
     def change(self, amount, seqno="ChangeTest", req_id=""):
+        """
+        Perform a cash transaction (deposit or dispense).
+        
+        Args:
+            amount (int): Amount in cents (positive for deposit, negative for dispense)
+            seqno (str): Sequence number for the request
+            req_id (str): Request ID for tracking
+            
+        Returns:
+            tuple: (result_code, response_xml) - "0" on success
+        """
         xml = f"""<?xml version="1.0"?>
 <soapenv:Envelope xmlns:soapenv="{NS_SOAP}" xmlns:bru="{NS_BRU}">
   <soapenv:Header/>
@@ -250,9 +362,19 @@ class BrueBoxClient:
         return self._get_result(resp, "ChangeResponse"), resp
 
     # ======================================================================
-    # RESET
+    # RESET - Reset device to initial state
     # ======================================================================
     def reset(self, seqno="ResetTest"):
+        """
+        Reset the BrueBox device to its initial state.
+        Clears any pending operations or errors.
+        
+        Args:
+            seqno (str): Sequence number for the request
+            
+        Returns:
+            tuple: (result_code, response_xml) - "0" on success
+        """
 
         xml = f"""<?xml version="1.0"?>
 <soapenv:Envelope xmlns:soapenv="{NS_SOAP}" xmlns:bru="{NS_BRU}">
@@ -269,9 +391,20 @@ class BrueBoxClient:
         return self._get_result(resp, "ResetResponse"), resp
 
     # ======================================================================
-    # CHANGE CANCEL
+    # CHANGE CANCEL - Cancel current transaction
     # ======================================================================
     def cancel_change(self, seqno="CancelTest", req_id="", option_type="1"):
+        """
+        Cancel the current cash transaction in progress.
+        
+        Args:
+            seqno (str): Sequence number for the request
+            req_id (str): Request ID of the transaction to cancel
+            option_type (str): Option type for cancel operation
+            
+        Returns:
+            tuple: (result_code, response_xml) - "0" on success
+        """
 
         xml = f"""<?xml version="1.0"?>
 <soapenv:Envelope xmlns:soapenv="{NS_SOAP}" xmlns:bru="{NS_BRU}">

@@ -1,1 +1,7 @@
 pyinstaller --onefile --windowed main.py
+
+pyinstaller --onefile --windowed --icon=Images/Designer.ico --add-data "Images;Images" main.py
+
+pyinstaller --onefile --windowed --icon=Images/Designer.ico main.py
+
+pyinstaller --onefile --windowed --icon=Images/Designer.png main.py
