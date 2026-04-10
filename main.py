@@ -18,13 +18,13 @@ from cloud_client import CloudClient
 # ======================================================
 # POS IDENTITY - Configuration for POS identification
 # ======================================================
-POS_ID = "POS-SYDNEY-001"        # Unique identifier for this POS terminal, must match the backend database
+POS_ID = "POS-SYDNEY-002"        # Unique identifier for this POS terminal, must match the backend database
 API_KEY = "REPLACE_WITH_KEY"    # Secret key for API authentication, must match the backend POS record
 
 # ======================================================
 # CLOUD CONFIG - Settings for cloud communication
 # ======================================================
-CLOUD_BASE_URL = "http://127.0.0.1:8000/api"  # Base URL for the cloud API endpoint
+CLOUD_BASE_URL = "https://talaeia.pythonanywhere.com//api"  # Base URL for the cloud API endpoint
 POLL_INTERVAL_MS = 3000  # Interval in milliseconds for polling the cloud for new commands
 
 

@@ -5,3 +5,32 @@ pyinstaller --onefile --windowed --icon=Images/Designer.ico --add-data "Images;I
 pyinstaller --onefile --windowed --icon=Images/Designer.ico main.py
 
 pyinstaller --onefile --windowed --icon=Images/Designer.png main.py
+
+
+========== REQUEST ==========
+SOAPAction: OpenOperation
+URL = http://192.168.90.132/axis2/services/BrueBoxService
+⚠️ Sending request WITHOUT SessionID
+<?xml version="1.0"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:bru="http://www.glory.co.jp/bruebox.xsd">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <bru:OpenRequest>
+      <bru:SeqNo>OpenTest</bru:SeqNo>
+      <bru:User>POS</bru:User>
+      <bru:UserPwd>POS</bru:UserPwd>
+      <bru:DeviceName>POS</bru:DeviceName>
+    </bru:OpenRequest>
+  </soapenv:Body>
+</soapenv:Envelope>
+========== RESPONSE ==========
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:n="http://www.glory.co.jp/bruebox.xsd">
+  <soapenv:Body>
+    <n:OpenResponse n:result="15">
+      <n:Id />
+      <n:SeqNo>OpenTest</n:SeqNo>
+      <n:User>POS</n:User>
+      <n:SessionID />
+    </n:OpenResponse>
+  </soapenv:Body>
+</soapenv:Envelope>
