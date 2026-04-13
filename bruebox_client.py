@@ -171,10 +171,19 @@ class BrueBoxClient:
                             self.log_callback("⚠️ INVALID SESSION (result=21)", "orange")
 
                         if result == "5" and self.log_callback:
-                            self.log_callback("⚠️ Device NOT OCCUPIED (result=5)", "orange")
+                            self.log_callback("⚠️ DEVICE NOT OCCUPIED (result=5)", "orange")
 
                         if result == "11" and self.log_callback:
                             self.log_callback("⚠️ INVALID REQUEST (result=11)", "orange")
+
+                        if result == "10" and self.log_callback:
+                            self.log_callback("⚠️ CHANGE SHORTAGE (result=10)", "orange")
+
+                        if result == "1" and self.log_callback:
+                            self.log_callback("⚠️ CANCEL CHANGE REQUEST (result=1)", "orange")
+
+                        if result == "15" and self.log_callback:
+                            self.log_callback("⚠️ USER AUTHENTICATION FAILURE (result=15)", "orange")
 
                         return result
 

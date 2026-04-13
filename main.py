@@ -366,6 +366,8 @@ class POSWindow(QWidget):
         """Reset the FCC device to its initial state."""
         result, _ = self.client.reset()
         self.log(f"Reset result = {result} (SID: {self.client.session_id})", "pink")
+
+
         self.set_status("Reset OK" if result == "0" else "Reset Error",
                         "#28a745" if result == "0" else "#d9534f")
 
